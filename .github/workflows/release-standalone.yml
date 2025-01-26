@@ -1,0 +1,125 @@
+# See:
+# - <https://github.com/tauri-apps/tauri-action>
+# - <https://wsh032.github.io/pytauri/>
+
+name: 'publish (standalone)'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            target: 'aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Intel based macs.
+            target: 'x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            target: 'x86_64-unknown-linux-gnu'
+          - platform: 'windows-latest'
+            target: 'x86_64-pc-windows-msvc'
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      
+      # see:
+      # - <https://github.com/astral-sh/python-build-standalone/releases>
+      # - <https://raw.githubusercontent.com/astral-sh/python-build-standalone/latest-release/latest-release.json>
+      # - <https://gregoryszorc.com/docs/python-build-standalone/main/running.html#obtaining-distributions>
+      - name: download python-build-standalone
+        env:
+          PYTHON_VERSION: '3.13.1'  # update this by yourself
+          DATE: '20250115'  # update this by yourself
+          TARGET: ${{ matrix.target }}
+        run: |
+          url="https://github.com/astral-sh/python-build-standalone/releases/download/${DATE}/cpython-${PYTHON_VERSION}+${DATE}-${TARGET}-install_only_stripped.tar.gz"
+          mkdir -p ./pyembed
+          curl -L $url | tar -xz -C ./pyembed
+
+      - name: install your project into the embedded python environment
+        env:
+          PYTAURI_STANDALONE: 1  # see your `setup.py`
+          PYTHON_PATH: ${{ matrix.platform == 'windows-latest' && './pyembed/python/python.exe' || './pyembed/python/bin/python3' }}
+        run: |
+          uv pip install \
+              --exact \
+              --python=${PYTHON_PATH} \
+              .
+
+      - name: set build environment variables (windows)
+        if: matrix.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          $PYO3_PYTHON = (Resolve-Path -LiteralPath ".\pyembed\python\python.exe").Path
+          echo "PYO3_PYTHON=$PYO3_PYTHON" >> $env:GITHUB_ENV
+
+      - name: set build environment variables (linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        shell: bash
+        # `nicegui-app` is your app `productName` in `tauri.conf.json`.
+        run: |
+          export PYO3_PYTHON=$(realpath ./pyembed/python/bin/python3)
+          export RUSTFLAGS=" \
+              -C link-arg=-Wl,-rpath,\$ORIGIN/../lib/nicegui-app/lib \
+              -L $(realpath ./pyembed/python/lib)"
+
+          echo "PYO3_PYTHON=$PYO3_PYTHON" >> $GITHUB_ENV
+          echo "RUSTFLAGS=$RUSTFLAGS" >> $GITHUB_ENV
+
+      - name: set build environment variables (macos)
+        if: matrix.platform == 'macos-latest'
+        shell: bash
+        run: |
+          export PYO3_PYTHON=$(realpath ./pyembed/python/bin/python3)
+          export RUSTFLAGS=" \
+              -C link-arg=-Wl,-rpath,@executable_path/../Resources/lib \
+              -L $(realpath ./pyembed/python/lib)"
+          
+          echo "PYO3_PYTHON=$PYO3_PYTHON" >> $GITHUB_ENV
+          echo "RUSTFLAGS=$RUSTFLAGS" >> $GITHUB_ENV
+
+      - name: Build and bundle the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: 'App v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+          args: '--target ${{ matrix.target }} --config tauri.bundle.json --verbose'
+          includeDebug: true

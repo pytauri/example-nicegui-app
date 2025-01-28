@@ -1,37 +1,31 @@
-# PyTauri + Vanilla TS
+# PyTauri + NiceGui
+
+> Make sure you have already installed `rust`, `Python`, `uv`, Tauri Prerequisites.
+>
+> You can find that in tutorial section in PyTauri Documentation.
+
+Clone this repository and `cd` into it first.
+
+## Standalone
 
 ```bash
-cd examples/nicegui-app
+# activate virtual environment
+uv venv --python-preference only-system
+source .venv/bin/activate
+
+# install the example package
+export PYTAURI_STANDALONE=1
+# or powershell: $env:PYTAURI_STANDALONE=1
+uv pip install --reinstall -e .
+
+cargo tauri dev --no-dev-server-wait
 ```
 
-and follow the tutorial section in Documentation.
-
-**NOTE**: **When using `tauri dev`, you must pass `--no-dev-server-wait`**, because the uvicorn server only starts after running the executable.
-
----
-
-or you are hurry, just wanna see/run the demo:
-
-> Make sure you have already installed `rust`, `uv`, `pnpm`, `node.js` and Tauri Prerequisites.
->
-> > Because you have directly pulled the development repository, you need `pnpm` to manually build frontend assets.
-> >
-> > In actual use, this step has already been completed for `pytauri` on `crates.io`, which means only `rust` and `python` are required.
->
-> You can find that in tutorial section in Documentation.
+## Python
 
 ```bash
-git clone https://github.com/WSH032/pytauri.git
-cd pytauri
-
-cd examples/nicegui-app
-
-# build frontend assets
-pnpm install
-pnpm -r run build
-
 # activate virtual environment
-uv venv
+uv venv --python-preference only-system
 source .venv/bin/activate
 # or powershell: .venv\Scripts\Activate.ps1
 

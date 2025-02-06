@@ -17,7 +17,7 @@ defaults:
 jobs:
   publish-tauri:
     permissions:
-      contents: write
+      contents: write  # required for creating github releases
     strategy:
       fail-fast: false
       matrix:

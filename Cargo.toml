@@ -31,24 +31,15 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 
 pyo3 = { version = "0.23" }
-pytauri = { version = "0.1.0-beta.0" }
-tauri-plugin-pytauri = { version = "0.1.0-beta.0" }
+pytauri = { version = "0.2" }
+tauri-plugin-pytauri = { version = "0.2" }
 tauri-plugin-notification = { version = "2" }
-pytauri-plugin-notification = { version = "0.1.0-beta.0" }
+pytauri-plugin-notification = { version = "0.2" }
 
 
-[patch.crates-io.pytauri]
-git = "https://github.com/WSH032/pytauri"
-rev = "a186122c774b8d03d402782b56839b46927dd25c"
-
-[patch.crates-io.tauri-plugin-pytauri]
-git = "https://github.com/WSH032/pytauri"
-rev = "a186122c774b8d03d402782b56839b46927dd25c"
-
-[patch.crates-io.pytauri-plugin-notification]
-git = "https://github.com/WSH032/pytauri"
-rev = "a186122c774b8d03d402782b56839b46927dd25c"
-
+[profile.release]
+codegen-units = 1 # Allows LLVM to perform better optimization.
+lto = true        # Enables link-time-optimizations.
 
 [profile.bundle-dev]
 inherits = "dev"

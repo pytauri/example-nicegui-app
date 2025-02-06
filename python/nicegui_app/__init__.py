@@ -18,7 +18,7 @@ from pytauri import (
     context_factory,
 )
 from pytauri.webview import WebviewWindow
-from pytauri_plugin_notification import NotificationBuilderArgs, NotificationExt
+from pytauri_plugin_notification import NotificationExt
 from typing_extensions import override
 
 
@@ -72,9 +72,7 @@ def root_ui() -> None:
 
     async def greet():
         notification_builder = NotificationExt.builder(app_handle)
-        notification_builder.show(
-            NotificationBuilderArgs(title="Greeting", body=f"Hello, {name.value}!")
-        )
+        notification_builder.show(title="Greeting", body=f"Hello, {name.value}!")
 
         webview_window.set_title(f"Hello {name.value}!")
 

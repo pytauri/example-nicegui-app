@@ -44,17 +44,6 @@ features = ["pyo3/extension-module", "tauri/custom-protocol", "pyo3/abi3-py39"]
 sdist-generator = "git"
 
 
-[tool.uv.sources.pytauri]
-git = "https://github.com/WSH032/pytauri"
-subdirectory = "python/pytauri"
-branch = "temp/org-example"
-
-[tool.uv.sources.pytauri-plugin-notification]
-git = "https://github.com/WSH032/pytauri"
-subdirectory = "python/pytauri-plugin-notification"
-branch = "temp/org-example"
-
-
 [tool.pyright]
 # see: <https://github.com/microsoft/pyright/blob/1.1.391/docs/configuration.md#environment-options>
 exclude = [

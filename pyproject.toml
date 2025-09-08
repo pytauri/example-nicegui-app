@@ -2,21 +2,25 @@
 name = "nicegui-app"
 version = "0.1.0"
 description = "A example for how to use nicegui with pytauri."
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "nicegui >= 2.9.1, < 3",
     "fastapi >= 0.115.6",
     "uvicorn >= 0.34",
     "anyio == 4.*",
     "typing-extensions >= 4",
-    "pytauri == 0.2.*",
-    "pytauri-plugin-notification == 0.2.*",
+    "pytauri == 0.8.*",
 ]
 
 [dependency-groups]
 dev = [{ include-group = "build-system" }]
 # keep the same as `[build-system.requires]`
-build-system = ["setuptools>=61", "setuptools-rust==1.*", "setuptools_scm>=8"]
+build-system = [
+    "setuptools >= 80",
+    "setuptools-rust == 1.*",
+    "setuptools_scm >= 8",
+    "Cython >= 3, <4",
+]
 
 
 [project.entry-points.pytauri]
@@ -25,37 +29,29 @@ build-system = ["setuptools>=61", "setuptools-rust==1.*", "setuptools_scm>=8"]
 ext_mod = "nicegui_app.ext_mod"
 
 [build-system]
-requires = ["setuptools>=61", "setuptools-rust==1.*", "setuptools_scm>=8"]
+requires = [
+    "setuptools >= 80",
+    "setuptools-rust == 1.*",
+    "setuptools_scm >= 8",
+    "Cython >= 3, <4",
+]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages]
 find = { where = ["python"] }
 
-# see: <https://www.maturin.rs/config>
-[tool.maturin]
-# the same as [tool.setuptools.packages.find.where]
-python-source = "python"
-# the same as `[project.entry-points.pytauri.ext_mod]`,
-# i.e., `target` in `setup.py`
-module-name = "nicegui_app.ext_mod"
-# see `setup.py`
-features = ["pyo3/extension-module", "tauri/custom-protocol", "pyo3/abi3-py39"]
-# equivalent to `setuptools_scm`
-sdist-generator = "git"
-
 
 [tool.pyright]
-# see: <https://github.com/microsoft/pyright/blob/1.1.391/docs/configuration.md#environment-options>
+# See: <https://pytauri.github.io/pytauri/0.5/usage/tutorial/build-standalone/#get-portable-python>
+# ref: <https://github.com/microsoft/pyright/blob/1.1.391/docs/configuration.md#environment-options>
 exclude = [
     "**/node_modules",
     "**/__pycache__",
+    "**/dist",
+    "**/.*",
+    "**/pyembed",
     # 👇 necessary, because when `tauri-cli bundles python,
     # it will copy `pyembed` to the target directory (i.e., rust output dir).
     "**/target",
     # 👆
-    "**/dist",
-    "**/.venv",
-    "**/.*",
-    "src-tauri/pyembed/",
-    "src-tauri/frontend/",
 ]

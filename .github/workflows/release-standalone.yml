@@ -1,6 +1,6 @@
 # See:
 # - <https://github.com/tauri-apps/tauri-action>
-# - <https://wsh032.github.io/pytauri/>
+# - <https://pytauri.github.io/pytauri/latest/usage/tutorial/build-standalone/>
 
 name: 'publish (standalone)'
 
@@ -49,12 +49,12 @@ jobs:
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      
+
       # see:
       # - <https://github.com/astral-sh/python-build-standalone/releases>
       # - <https://raw.githubusercontent.com/astral-sh/python-build-standalone/latest-release/latest-release.json>
@@ -62,20 +62,28 @@ jobs:
       - name: download python-build-standalone
         env:
           PYTHON_VERSION: '3.13.1'  # update this by yourself
-          DATE: '20250115'  # update this by yourself
+          TAG: '20250115'  # update this by yourself
           TARGET: ${{ matrix.target }}
         run: |
-          url="https://github.com/astral-sh/python-build-standalone/releases/download/${DATE}/cpython-${PYTHON_VERSION}+${DATE}-${TARGET}-install_only_stripped.tar.gz"
-          mkdir -p ./pyembed
-          curl -L $url | tar -xz -C ./pyembed
+          url="https://github.com/astral-sh/python-build-standalone/releases/download/${TAG}/cpython-${PYTHON_VERSION}+${TAG}-${TARGET}-install_only_stripped.tar.gz"
+          DEST_DIR="pyembed"
+          mkdir "$DEST_DIR"
+          curl -L "$url" | tar -xz -C "$DEST_DIR"
+
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            python_major_minor="${PYTHON_VERSION%.*}"  # "3.13.7" -> "3.13"
+            install_name_tool -id "@rpath/libpython${python_major_minor}.dylib" "$DEST_DIR/python/lib/libpython${python_major_minor}.dylib"
+          fi
 
       - name: install your project into the embedded python environment
         env:
           PYTAURI_STANDALONE: 1  # see your `setup.py`
+          USE_CYTHON: 1  # see your `setup.py`
           PYTHON_PATH: ${{ matrix.platform == 'windows-latest' && './pyembed/python/python.exe' || './pyembed/python/bin/python3' }}
         run: |
           uv pip install \
               --exact \
+              --compile-bytecode \
               --python=${PYTHON_PATH} \
               .
 
@@ -89,11 +97,13 @@ jobs:
       - name: set build environment variables (linux)
         if: matrix.platform == 'ubuntu-22.04'
         shell: bash
-        # `nicegui-app` is your app `productName` in `tauri.conf.json`.
+        env:
+          # `nicegui-app` is your app `productName` in `tauri.conf.json`
+          PROJECT_NAME: 'nicegui-app'
         run: |
           export PYO3_PYTHON=$(realpath ./pyembed/python/bin/python3)
           export RUSTFLAGS=" \
-              -C link-arg=-Wl,-rpath,\$ORIGIN/../lib/nicegui-app/lib \
+              -C link-arg=-Wl,-rpath,\$ORIGIN/../lib/${PROJECT_NAME}/lib \
               -L $(realpath ./pyembed/python/lib)"
 
           echo "PYO3_PYTHON=$PYO3_PYTHON" >> $GITHUB_ENV
@@ -107,7 +117,7 @@ jobs:
           export RUSTFLAGS=" \
               -C link-arg=-Wl,-rpath,@executable_path/../Resources/lib \
               -L $(realpath ./pyembed/python/lib)"
-          
+
           echo "PYO3_PYTHON=$PYO3_PYTHON" >> $GITHUB_ENV
           echo "RUSTFLAGS=$RUSTFLAGS" >> $GITHUB_ENV
 

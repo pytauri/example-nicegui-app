@@ -9,9 +9,6 @@ pub fn tauri_generate_context() -> tauri::Context {
 pub mod ext_mod {
     use super::*;
 
-    #[pymodule_export]
-    use pytauri_plugin_notification::notification;
-
     #[pymodule_init]
     fn init(module: &Bound<'_, PyModule>) -> PyResult<()> {
         pytauri::pymodule_export(
@@ -20,9 +17,7 @@ pub mod ext_mod {
             |_args, _kwargs| Ok(tauri_generate_context()),
             // i.e., `builder_factory` function of python binding
             |_args, _kwargs| {
-                let builder = tauri::Builder::default()
-                    .plugin(tauri_plugin_opener::init())
-                    .plugin(tauri_plugin_notification::init());
+                let builder = tauri::Builder::default();
                 Ok(builder)
             },
         )

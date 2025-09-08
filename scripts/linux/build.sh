@@ -20,4 +20,4 @@ uv pip install \
     --reinstall-package="$PROJECT_NAME" \
     .
 
-pnpm tauri build --config="tauri.bundle.json" -- --profile bundle-release
+cargo tauri build --config="tauri.bundle.json" -- --profile bundle-release

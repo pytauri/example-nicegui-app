@@ -61,8 +61,8 @@ jobs:
       # - <https://gregoryszorc.com/docs/python-build-standalone/main/running.html#obtaining-distributions>
       - name: download python-build-standalone
         env:
-          PYTHON_VERSION: '3.13.1'  # update this by yourself
-          TAG: '20250115'  # update this by yourself
+          PYTHON_VERSION: '3.13.7'  # update this by yourself
+          TAG: '20250902'  # update this by yourself
           TARGET: ${{ matrix.target }}
         run: |
           url="https://github.com/astral-sh/python-build-standalone/releases/download/${TAG}/cpython-${PYTHON_VERSION}+${TAG}-${TARGET}-install_only_stripped.tar.gz"
@@ -71,8 +71,8 @@ jobs:
           curl -L "$url" | tar -xz -C "$DEST_DIR"
 
           if [[ "${{ runner.os }}" == "macOS" ]]; then
-            python_major_minor="${PYTHON_VERSION%.*}"  # "3.13.7" -> "3.13"
-            install_name_tool -id "@rpath/libpython${python_major_minor}.dylib" "$DEST_DIR/python/lib/libpython${python_major_minor}.dylib"
+              python_major_minor="${PYTHON_VERSION%.*}"  # "3.13.7" -> "3.13"
+              install_name_tool -id "@rpath/libpython${python_major_minor}.dylib" "$DEST_DIR/python/lib/libpython${python_major_minor}.dylib"
           fi
 
       - name: install your project into the embedded python environment
@@ -103,7 +103,7 @@ jobs:
         run: |
           export PYO3_PYTHON=$(realpath ./pyembed/python/bin/python3)
           export RUSTFLAGS=" \
-              -C link-arg=-Wl,-rpath,\$ORIGIN/../lib/${PROJECT_NAME}/lib \
+              -C link-arg=-Wl,-rpath,\$ORIGIN/../lib/${{env.PROJECT_NAME}}/lib \
               -L $(realpath ./pyembed/python/lib)"
 
           echo "PYO3_PYTHON=$PYO3_PYTHON" >> $GITHUB_ENV

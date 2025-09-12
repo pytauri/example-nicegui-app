@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "nicegui-app",
   "version": "0.2.0",
-  "identifier": "com.nicegui-app.app",
+  "identifier": "io.github.pytauri.nicegui-app",
   "build": {
     "devUrl": "http://localhost:8080",
     "frontendDist": "http://localhost:8080",

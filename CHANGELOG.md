@@ -39,6 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `pytauri` monorepo to `v0.8.0`
 - Use `Cython` to protect python source code
 - Add `scripts/` to help build standalone app
+- Bump `python-build-standalone` to `python 3.13.7 (20250902)`
+
+### Changed
+
+- Change `identifier` to `io.github.pytauri.nicegui-app`
+
+### Removed
+
+- Temporarily disable `appimage` bundle target on Linux
 
 ### Fixed
 

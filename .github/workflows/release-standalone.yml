@@ -89,7 +89,7 @@ jobs:
 
       - name: set build environment variables (windows)
         if: matrix.platform == 'windows-latest'
-        shell: powershell
+        shell: pwsh
         run: |
           $PYO3_PYTHON = (Resolve-Path -LiteralPath ".\pyembed\python\python.exe").Path
           echo "PYO3_PYTHON=$PYO3_PYTHON" >> $env:GITHUB_ENV
